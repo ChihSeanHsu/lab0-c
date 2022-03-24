@@ -118,6 +118,28 @@ bool q_delete_mid(struct list_head *head)
 bool q_delete_dup(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+    struct list_head *node = head->next, *tmp;
+    while (node != head) {
+        element_t *curr = list_entry(node, element_t, list);
+        if (curr->value == list_entry(node->next, element_t, list)->value) {
+            while (curr->value ==
+                   list_entry(node->next, element_t, list)->value) {
+                tmp = node;
+                node = node->next;
+                list_del_init(tmp);
+                free(curr->value);
+                free(curr);
+                curr = list_entry(node, element_t, list);
+            }
+            tmp = node;
+            node = node->next;
+            list_del_init(tmp);
+            free(curr->value);
+            free(curr);
+        } else {
+            node = node->next;
+        }
+    }
     return true;
 }
 
@@ -125,6 +147,27 @@ bool q_delete_dup(struct list_head *head)
 void q_swap(struct list_head *head)
 {
     // https://leetcode.com/problems/swap-nodes-in-pairs/
+    if (list_empty(head) || list_is_singular(head)) {
+        return;
+    }
+    struct list_head *node = head->next, *tmp;
+    while (node->next != head && node != head) {
+        tmp = node->next;
+
+        list_del_init(node);
+        node->next = tmp->next;
+        tmp->next = node;
+        node->prev = tmp;
+        node->next->prev = node;
+
+        node = node->next;
+        if (node == head) {
+            head->prev = tmp->next;
+        } else if (node->next == head) {
+            head->prev = node;
+        }
+    }
+    return;
 }
 
 /* Reverse elements in queue */
@@ -138,4 +181,29 @@ void q_reverse(struct list_head *head)
 
 
 /* Sort elements of queue in ascending order */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (list_empty(head) || list_is_singular(head)) {
+        return;
+    }
+
+    struct list_head *left = q_new(), *right = q_new();
+    element_t *pivot = list_first_entry(head, element_t, list);
+    list_del_init(&pivot->list);
+
+    for (struct list_head *node = head->next; node != head; node = node->next) {
+        element_t *curr = list_entry(node, element_t, list);
+        list_del_init(&curr->list);
+        if (curr->value > pivot->value) {
+            list_add(&curr->list, left);
+        } else {
+            list_add(&curr->list, right);
+        }
+    }
+    q_sort(left);
+    q_sort(right);
+
+    list_add_tail(&pivot->list, left);
+    list_splice_tail(right, left);
+    list_splice(left, head);
+}
