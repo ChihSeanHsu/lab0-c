@@ -193,23 +193,24 @@ void q_reverse(struct list_head *head)
 /* Sort elements of queue in ascending order */
 void q_sort(struct list_head *head)
 {
+    struct list_head left, right;
+    element_t *pivot;
+    element_t *node = NULL, *safe = NULL;
+
     if (list_empty(head) || list_is_singular(head)) {
         return;
     }
 
-    LIST_HEAD(left);
-    LIST_HEAD(right);
-    element_t *pivot = list_first_entry(head, element_t, list);
-    struct list_head *node = head->next;
+    INIT_LIST_HEAD(&left);
+    INIT_LIST_HEAD(&right);
+    pivot = list_first_entry(head, element_t, list);
     list_del_init(&pivot->list);
 
-    for (; node != head; node = node->next) {
-        element_t *curr = list_entry(node, element_t, list);
-        list_del_init(&curr->list);
-        if (curr->value > pivot->value) {
-            list_add(&curr->list, &left);
+    list_for_each_entry_safe (node, safe, head, list) {
+        if (strcmp(node->value, pivot->value) < 0) {
+            list_move(&node->list, &left);
         } else {
-            list_add(&curr->list, &right);
+            list_move(&node->list, &right);
         }
     }
     q_sort(&left);
