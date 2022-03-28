@@ -41,7 +41,14 @@ void q_free(struct list_head *l)
 bool q_insert_head(struct list_head *head, char *s)
 {
     element_t *new_node = malloc(sizeof(element_t));
+    if (new_node == NULL) {
+        return false;
+    }
     char *copy = malloc(strlen(s) + 1);
+    if (copy == NULL) {
+        free(new_node);
+        return false;
+    }
     strncpy(copy, s, strlen(s) + 1);
     LIST_HEAD(new_list);
     new_node->value = copy;
@@ -54,7 +61,14 @@ bool q_insert_head(struct list_head *head, char *s)
 bool q_insert_tail(struct list_head *head, char *s)
 {
     element_t *new_node = malloc(sizeof(element_t));
+    if (new_node == NULL) {
+        return false;
+    }
     char *copy = malloc(strlen(s) + 1);
+    if (copy == NULL) {
+        free(new_node);
+        return false;
+    }
     strncpy(copy, s, strlen(s) + 1);
     LIST_HEAD(new_list);
     new_node->value = copy;
@@ -124,9 +138,11 @@ bool q_delete_dup(struct list_head *head)
     struct list_head *node = head->next, *tmp;
     while (node != head) {
         element_t *curr = list_entry(node, element_t, list);
-        if (curr->value == list_entry(node->next, element_t, list)->value) {
-            while (curr->value ==
-                   list_entry(node->next, element_t, list)->value) {
+        if (strcmp(curr->value,
+                   list_entry(node->next, element_t, list)->value) == 0) {
+            while (strcmp(curr->value,
+                          list_entry(node->next, element_t, list)->value) ==
+                   0) {
                 tmp = node;
                 node = node->next;
                 list_del_init(tmp);
@@ -153,22 +169,13 @@ void q_swap(struct list_head *head)
     if (list_empty(head) || list_is_singular(head)) {
         return;
     }
-    struct list_head *node = head->next, *tmp;
-    while (node->next != head && node != head) {
-        tmp = node->next;
-
-        list_del_init(node);
-        node->next = tmp->next;
-        tmp->next = node;
-        node->prev = tmp;
-        node->next->prev = node;
-
-        node = node->next;
-        if (node == head) {
-            head->prev = tmp->next;
-        } else if (node->next == head) {
-            head->prev = node;
-        }
+    struct list_head *first, *second;
+    first = head->next;
+    second = first->next;
+    while (first != head && second != head) {
+        list_move(first, second);
+        first = first->next;
+        second = first->next;
     }
     return;
 }
@@ -190,23 +197,25 @@ void q_sort(struct list_head *head)
         return;
     }
 
-    struct list_head *left = q_new(), *right = q_new();
+    LIST_HEAD(left);
+    LIST_HEAD(right);
     element_t *pivot = list_first_entry(head, element_t, list);
+    struct list_head *node = head->next;
     list_del_init(&pivot->list);
 
-    for (struct list_head *node = head->next; node != head; node = node->next) {
+    for (; node != head; node = node->next) {
         element_t *curr = list_entry(node, element_t, list);
         list_del_init(&curr->list);
         if (curr->value > pivot->value) {
-            list_add(&curr->list, left);
+            list_add(&curr->list, &left);
         } else {
-            list_add(&curr->list, right);
+            list_add(&curr->list, &right);
         }
     }
-    q_sort(left);
-    q_sort(right);
+    q_sort(&left);
+    q_sort(&right);
 
-    list_add_tail(&pivot->list, left);
-    list_splice_tail(right, left);
-    list_splice(left, head);
+    list_add_tail(&pivot->list, &left);
+    list_splice_tail(&right, &left);
+    list_splice(&left, head);
 }
