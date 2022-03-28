@@ -40,6 +40,9 @@ void q_free(struct list_head *l)
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (head == NULL) {
+        return false;
+    }
     element_t *new_node = malloc(sizeof(element_t));
     if (new_node == NULL) {
         return false;
@@ -60,6 +63,9 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (head == NULL) {
+        return false;
+    }
     element_t *new_node = malloc(sizeof(element_t));
     if (new_node == NULL) {
         return false;
@@ -80,7 +86,7 @@ bool q_insert_tail(struct list_head *head, char *s)
 /* Remove an element from head of queue */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    if (list_empty(head)) {
+    if (head == NULL || list_empty(head)) {
         return NULL;
     }
     element_t *entry = list_first_entry(head, element_t, list);
@@ -95,7 +101,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 /* Remove an element from tail of queue */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    if (list_empty(head)) {
+    if (head == NULL || list_empty(head)) {
         return NULL;
     }
     element_t *entry = list_last_entry(head, element_t, list);
@@ -110,6 +116,9 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 /* Return number of elements in queue */
 int q_size(struct list_head *head)
 {
+    if (head == NULL) {
+        return 0;
+    }
     int count = 0;
     struct list_head *node;
     list_for_each (node, head) {
@@ -197,6 +206,9 @@ void q_swap(struct list_head *head)
 /* Reverse elements in queue */
 void q_reverse(struct list_head *head)
 {
+    if (head == NULL) {
+        return;
+    }
     struct list_head *node, *safe;
     list_for_each_safe (node, safe, head) {
         list_move(node, head);
@@ -211,7 +223,7 @@ void q_sort(struct list_head *head)
     element_t *pivot;
     element_t *node = NULL, *safe = NULL;
 
-    if (list_empty(head) || list_is_singular(head)) {
+    if (head == NULL || list_empty(head) || list_is_singular(head)) {
         return;
     }
 
