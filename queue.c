@@ -84,7 +84,8 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
         return NULL;
     }
     element_t *entry = list_first_entry(head, element_t, list);
-    strncpy(sp, entry->value, bufsize);
+    *sp = '\0';
+    strncat(sp, entry->value, bufsize - 1);
     list_del_init(&entry->list);
     return entry;
 }
@@ -96,7 +97,8 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
         return NULL;
     }
     element_t *entry = list_last_entry(head, element_t, list);
-    strncpy(sp, entry->value, bufsize);
+    *sp = '\0';
+    strncat(sp, entry->value, bufsize - 1);
     list_del_init(&entry->list);
     return entry;
 }
@@ -135,30 +137,38 @@ bool q_delete_mid(struct list_head *head)
 bool q_delete_dup(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
-    struct list_head *node = head->next, *tmp;
-    while (node != head) {
-        element_t *curr = list_entry(node, element_t, list);
-        if (strcmp(curr->value,
-                   list_entry(node->next, element_t, list)->value) == 0) {
-            while (strcmp(curr->value,
-                          list_entry(node->next, element_t, list)->value) ==
-                   0) {
-                tmp = node;
-                node = node->next;
-                list_del_init(tmp);
-                free(curr->value);
-                free(curr);
-                curr = list_entry(node, element_t, list);
-            }
-            tmp = node;
-            node = node->next;
-            list_del_init(tmp);
-            free(curr->value);
-            free(curr);
-        } else {
-            node = node->next;
-        }
-    }
+    // element_t *node = NULL, *safe = NULL;
+    // struct list_head *node = head->next, *tmp;
+    // list_for_each_entry_safe (node, safe, head, list) {
+    //     if (strcmp(node->value, pivot->value) < 0) {
+    //         list_move(&node->list, &left);
+    //     } else {
+    //         list_move(&node->list, &right);
+    //     }
+    // }
+    // while (node != head) {
+    //     element_t *curr = list_entry(node, element_t, list);
+    //     if (strcmp(curr->value,
+    //                list_entry(node->next, element_t, list)->value) == 0) {
+    //         while (strcmp(curr->value,
+    //                       list_entry(node->next, element_t, list)->value) ==
+    //                0) {
+    //             tmp = node;
+    //             node = node->next;
+    //             list_del_init(tmp);
+    //             free(curr->value);
+    //             free(curr);
+    //             curr = list_entry(node, element_t, list);
+    //         }
+    //         tmp = node;
+    //         node = node->next;
+    //         list_del_init(tmp);
+    //         free(curr->value);
+    //         free(curr);
+    //     } else {
+    //         node = node->next;
+    //     }
+    // }
     return true;
 }
 
