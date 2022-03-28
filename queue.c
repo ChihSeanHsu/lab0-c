@@ -159,6 +159,7 @@ bool q_delete_dup(struct list_head *head)
     //         list_move(&node->list, &right);
     //     }
     // }
+
     // while (node != head) {
     //     element_t *curr = list_entry(node, element_t, list);
     //     if (strcmp(curr->value,
