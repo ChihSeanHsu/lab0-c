@@ -150,39 +150,30 @@ bool q_delete_mid(struct list_head *head)
 bool q_delete_dup(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
-    // element_t *node = NULL, *safe = NULL;
-    // struct list_head *node = head->next, *tmp;
-    // list_for_each_entry_safe (node, safe, head, list) {
-    //     if (strcmp(node->value, pivot->value) < 0) {
-    //         list_move(&node->list, &left);
-    //     } else {
-    //         list_move(&node->list, &right);
-    //     }
-    // }
+    struct list_head *node = head->next, *tmp, *next_node;
+    while (node != head) {
+        next_node = node->next;
+        element_t *curr = list_entry(node, element_t, list),
+                  *next_ele = list_entry(next_node, element_t, list);
+        if (next_node != head && strcmp(curr->value, next_ele->value) == 0) {
+            while (next_node != head &&
+                   strcmp(curr->value, next_ele->value) == 0) {
+                tmp = next_node->next;
+                list_del_init(next_node);
 
-    // while (node != head) {
-    //     element_t *curr = list_entry(node, element_t, list);
-    //     if (strcmp(curr->value,
-    //                list_entry(node->next, element_t, list)->value) == 0) {
-    //         while (strcmp(curr->value,
-    //                       list_entry(node->next, element_t, list)->value) ==
-    //                0) {
-    //             tmp = node;
-    //             node = node->next;
-    //             list_del_init(tmp);
-    //             free(curr->value);
-    //             free(curr);
-    //             curr = list_entry(node, element_t, list);
-    //         }
-    //         tmp = node;
-    //         node = node->next;
-    //         list_del_init(tmp);
-    //         free(curr->value);
-    //         free(curr);
-    //     } else {
-    //         node = node->next;
-    //     }
-    // }
+                free(next_ele->value);
+                free(next_ele);
+                next_node = tmp;
+                next_ele = list_entry(next_node, element_t, list);
+            }
+            list_del_init(node);
+            free(curr->value);
+            free(curr);
+            node = next_node;
+        } else {
+            node = node->next;
+        }
+    }
     return true;
 }
 
