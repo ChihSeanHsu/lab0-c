@@ -208,33 +208,80 @@ void q_reverse(struct list_head *head)
 }
 
 
-/* Sort elements of queue in ascending order */
-void q_sort(struct list_head *head)
+struct list_head *merge(struct list_head *l, struct list_head *r)
 {
-    struct list_head left, right;
-    element_t *pivot;
-    element_t *node = NULL, *safe = NULL;
-
-    if (head == NULL || list_empty(head) || list_is_singular(head)) {
-        return;
-    }
-
-    INIT_LIST_HEAD(&left);
-    INIT_LIST_HEAD(&right);
-    pivot = list_first_entry(head, element_t, list);
-    list_del_init(&pivot->list);
-
-    list_for_each_entry_safe (node, safe, head, list) {
-        if (strcmp(node->value, pivot->value) < 0) {
-            list_move(&node->list, &left);
+    struct list_head *head = NULL;
+    struct list_head **ptr = &head;
+    for (; l && r; ptr = &(*ptr)->next) {
+        element_t *ele_l = list_entry(l, element_t, list);
+        element_t *ele_r = list_entry(r, element_t, list);
+        if (strcmp(ele_l->value, ele_r->value) <= 0) {
+            *ptr = l;
+            l = l->next;
         } else {
-            list_move(&node->list, &right);
+            *ptr = r;
+            r = r->next;
         }
     }
-    q_sort(&left);
-    q_sort(&right);
 
-    list_add_tail(&pivot->list, &left);
-    list_splice_tail(&right, &left);
-    list_splice(&left, head);
+    if (l)
+        *ptr = l;
+    if (r)
+        *ptr = r;
+
+    return head;
+}
+
+struct list_head *merge_sort_list(struct list_head *head)
+{
+    if (!head || !head->next)
+        return head;
+
+    struct list_head *fast, *slow;
+    slow = head;
+    fast = slow->next;
+
+    for (; fast && fast->next; fast = fast->next->next) {
+        slow = slow->next;
+    }
+
+    struct list_head *mid = slow->next;
+    slow->next = NULL;
+
+    struct list_head *l = merge_sort_list(head), *r = merge_sort_list(mid);
+    return merge(l, r);
+}
+
+void merge_sort(struct list_head **list)
+{
+    *list = merge_sort_list(*list);
+}
+
+/*
+ * Sort elements of queue in ascending order
+ * No effect if q is NULL or empty. In addition, if q has only one
+ * element, do nothing.
+ */
+void q_sort(struct list_head *head)
+{
+    if (head == NULL || list_empty(head) || list_is_singular(head))
+        return;
+
+    struct list_head *list = head->next;
+    head->prev->next = NULL;
+
+    merge_sort(&list);
+
+    // recovery
+    struct list_head *curr = list->next;
+    struct list_head *last = list;
+    last->prev = head;
+    head->next = last;
+    while (curr) {
+        curr->prev = last;
+        curr = curr->next;
+        last = last->next;
+    }
+    last->next = head;
+    head->prev = last;
 }
